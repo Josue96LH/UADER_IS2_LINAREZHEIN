@@ -9,8 +9,7 @@ import sys
 
 def factorial(num): 
     if num < 0: 
-        print("Factorial de un número negativo no existe")
-        return 0
+        return "Factorial de un número negativo no existe"
     elif num == 0: 
         return 1
     else: 
@@ -20,10 +19,22 @@ def factorial(num):
             num -= 1
         return fact 
 
+def calcular_factoriales(inicio, fin):
+    for num in range(inicio, fin + 1):
+        print(f"Factorial de {num}! es {factorial(num)}")
+
 # Verificar si se pasó un argumento
 if len(sys.argv) < 2:
-    num = int(input("Ingrese un número para calcular su factorial: "))
+    rango = input("Ingrese un rango en el formato 'inicio-fin' (ej. 4-8): ")
 else:
-    num = int(sys.argv[1])
+    rango = sys.argv[1]
 
-print(f"Factorial de {num}! es {factorial(num)}")
+# Procesar el rango
+try:
+    inicio, fin = map(int, rango.split('-'))
+    if inicio > fin:
+        print("El número de inicio debe ser menor o igual al de fin.")
+    else:
+        calcular_factoriales(inicio, fin)
+except ValueError:
+    print("Formato incorrecto. Use 'inicio-fin' con números enteros.")
