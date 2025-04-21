@@ -1,0 +1,6 @@
+Imaginemos que tenemos varios productos distintos que están relacionados entre sí. 
+A su vez, estos productos tienen diferentes 'modelos'. 
+En primer lugar, creamos una clase para los productos concretos, como puertas, ventanas o aberturas. 
+Estas clases implementan interfaces de clases abstractas sobre los productos, y abarcan todas las variantes disponibles, ya sea aluminio, madera o plástico. 
+Las interfaces abstractas implementan métodos para crear las diferentes variantes. 
+Luego, las clases de productos concretos implementan métodos para la creación de estas interfaces con una variable específica y generan un producto de esa variante.
