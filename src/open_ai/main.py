@@ -1,5 +1,6 @@
 import json
 import os
+import readline  # <-- NUEVO: permite historial con teclas
 from dotenv import load_dotenv
 import openai
 
@@ -36,7 +37,7 @@ def obtener_respuesta_chatgpt(contexto: str, consulta: str) -> str:
         )
         respuesta_json = response.choices[0].message.content
         datos = json.loads(respuesta_json)
-        return f"chatGPT: {json.dumps(datos, indent=2)}"
+        return f"chatGPT: {json.dumps(datos, indent=2, ensure_ascii=False)}"
     except openai.OpenAIError as e:
         if "insufficient_quota" in str(e):
             return "chatGPT: No tienes crédito suficiente en tu cuenta de OpenAI. Revisa tu plan en https://platform.openai.com/account/usage"
@@ -47,38 +48,49 @@ def obtener_respuesta_chatgpt(contexto: str, consulta: str) -> str:
 
 def main():
     """
-    Función principal con manejo de errores en tres niveles:
-    1. Entrada del usuario
-    2. Procesamiento/formateo
-    3. Llamada al modelo
+    Función principal con historial: permite recuperar la última consulta con flecha arriba.
     """
     contexto = "Responde como un asistente útil que devuelve respuestas claras en JSON."
+    ultima_consulta = ""
 
-    try:
-        # Nivel 1: Aceptar entrada
-        user_input = input("Escribe tu consulta para chatGPT: ").strip()
-        if not user_input:
-            print("La consulta está vacía. Por favor, ingresa una pregunta.")
-            return
-
+    while True:
         try:
-            # Nivel 2: Procesamiento
-            consulta_formateada = f"You: {user_input}"
-            print(consulta_formateada)
+            # Nivel 1: Entrada del usuario
+            user_input = input("Escribe tu consulta para chatGPT (o 'salir' para terminar): ").strip()
+
+            if user_input.lower() == "salir":
+                print("Programa terminado.")
+                break
+
+            if not user_input:
+                print("La consulta está vacía. Por favor, ingresa una pregunta.")
+                continue
+
+            # Guardar en historial de readline
+            readline.add_history(user_input)
+            ultima_consulta = user_input  # guardar para referencia (opcional)
 
             try:
-                # Nivel 3: Llamada al modelo
-                respuesta = obtener_respuesta_chatgpt(contexto, consulta_formateada)
-                print(respuesta)
+                # Nivel 2: Procesamiento
+                consulta_formateada = f"You: {user_input}"
+                print(consulta_formateada)
 
-            except Exception as e_modelo:
-                print(f"Error al invocar el modelo: {e_modelo}")
+                try:
+                    # Nivel 3: Llamada al modelo
+                    respuesta = obtener_respuesta_chatgpt(contexto, consulta_formateada)
+                    print(respuesta)
 
-        except Exception as e_proceso:
-            print(f"Error al procesar la entrada: {e_proceso}")
+                except Exception as e_modelo:
+                    print(f"Error al invocar el modelo: {e_modelo}")
 
-    except Exception as e_entrada:
-        print(f"Error al leer la entrada del usuario: {e_entrada}")
+            except Exception as e_proceso:
+                print(f"Error al procesar la entrada: {e_proceso}")
+
+        except KeyboardInterrupt:
+            print("\nInterrupción del usuario. Saliendo...")
+            break
+        except Exception as e_entrada:
+            print(f"Error al leer la entrada del usuario: {e_entrada}")
 
 
 if __name__ == "__main__":
