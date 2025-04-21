@@ -1,25 +1,37 @@
+"""
+Módulo interactivo para enviar consultas a ChatGPT usando la API de OpenAI.
+Permite al usuario interactuar desde consola con historial de entradas.
+"""
+
 import json
 import os
-import readline  # <-- NUEVO: permite historial con teclas
+import readline  # Permite historial de entradas con flechas
 from dotenv import load_dotenv
 import openai
 
-# Cargar variables de entorno desde archivo .env
+# Cargar variables de entorno
 load_dotenv()
 
-# Obtener la API Key desde variable de entorno
+# Obtener la API Key desde .env
 api_key = os.getenv("OPENAI_API_KEY")
 
 if not api_key:
     raise ValueError("No se encontró la variable OPENAI_API_KEY en el archivo .env")
 
-# Inicializar el cliente de OpenAI
+# Inicializar el cliente OpenAI
 client = openai.OpenAI(api_key=api_key)
 
 
 def obtener_respuesta_chatgpt(contexto: str, consulta: str) -> str:
     """
-    Realiza una consulta al modelo GPT de OpenAI y devuelve la respuesta como texto.
+    Envía una consulta al modelo de OpenAI y devuelve la respuesta formateada.
+
+    Args:
+        contexto (str): Instrucciones para el modelo (rol del sistema).
+        consulta (str): Texto de la consulta del usuario.
+
+    Returns:
+        str: Respuesta del modelo en formato JSON formateado.
     """
     try:
         response = client.chat.completions.create(
@@ -38,25 +50,31 @@ def obtener_respuesta_chatgpt(contexto: str, consulta: str) -> str:
         respuesta_json = response.choices[0].message.content
         datos = json.loads(respuesta_json)
         return f"chatGPT: {json.dumps(datos, indent=2, ensure_ascii=False)}"
+
     except openai.OpenAIError as e:
         if "insufficient_quota" in str(e):
-            return "chatGPT: No tienes crédito suficiente en tu cuenta de OpenAI. Revisa tu plan en https://platform.openai.com/account/usage"
-        return f"chatGPT: Error al obtener respuesta del modelo: {e}"
-    except Exception as e:
+            return ("chatGPT: No tienes crédito suficiente. "
+                    "Revisa tu plan en https://platform.openai.com/account/usage")
+        return f"chatGPT: Error del modelo: {e}"
+
+    except json.JSONDecodeError as e_json:
+        return f"chatGPT: Error al decodificar JSON: {e_json}"
+
+    except Exception as e:  # noqa: W0718
         return f"chatGPT: Error inesperado: {e}"
 
 
 def main():
     """
-    Función principal con historial: permite recuperar la última consulta con flecha arriba.
+    Función principal: ciclo interactivo que permite enviar consultas a ChatGPT.
     """
     contexto = "Responde como un asistente útil que devuelve respuestas claras en JSON."
     ultima_consulta = ""
 
     while True:
         try:
-            # Nivel 1: Entrada del usuario
-            user_input = input("Escribe tu consulta para chatGPT (o 'salir' para terminar): ").strip()
+            user_input = input(
+                "Escribe tu consulta para chatGPT (o 'salir' para terminar): ").strip()
 
             if user_input.lower() == "salir":
                 print("Programa terminado.")
@@ -66,31 +84,21 @@ def main():
                 print("La consulta está vacía. Por favor, ingresa una pregunta.")
                 continue
 
-            # Guardar en historial de readline
             readline.add_history(user_input)
-            ultima_consulta = user_input  # guardar para referencia (opcional)
+            ultima_consulta = user_input
 
-            try:
-                # Nivel 2: Procesamiento
-                consulta_formateada = f"You: {user_input}"
-                print(consulta_formateada)
+            consulta_formateada = f"You: {user_input}"
+            print(consulta_formateada)
 
-                try:
-                    # Nivel 3: Llamada al modelo
-                    respuesta = obtener_respuesta_chatgpt(contexto, consulta_formateada)
-                    print(respuesta)
-
-                except Exception as e_modelo:
-                    print(f"Error al invocar el modelo: {e_modelo}")
-
-            except Exception as e_proceso:
-                print(f"Error al procesar la entrada: {e_proceso}")
+            respuesta = obtener_respuesta_chatgpt(contexto, consulta_formateada)
+            print(respuesta)
 
         except KeyboardInterrupt:
             print("\nInterrupción del usuario. Saliendo...")
             break
-        except Exception as e_entrada:
-            print(f"Error al leer la entrada del usuario: {e_entrada}")
+
+        except Exception as e:  # noqa: W0718
+            print(f"Error inesperado en la entrada: {e}")
 
 
 if __name__ == "__main__":
