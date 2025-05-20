@@ -1,10 +1,3 @@
-# Decompiled with PyLingual (https://pylingual.io)
-# Internal filename: getJason.py
-# Bytecode version: 3.12.0rc2 (3531)
-# Source timestamp: 2025-05-06 19:05:36 UTC (1746558336)
-
-#!/usr/bin/env python3
-
 """
 Este programa permite recuperar una clave desde un archivo JSON.
 Uso:
