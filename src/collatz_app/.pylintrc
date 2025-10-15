@@ -1,0 +1,8 @@
+[MESSAGES CONTROL]
+disable=R,C
+
+[MASTER]
+init-hook="import sys; sys.path.append('src')"
+
+[FORMAT]
+max-line-length=100

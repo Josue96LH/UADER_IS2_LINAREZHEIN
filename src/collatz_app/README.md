@@ -1,0 +1,3 @@
+click==8.1.7
+pytest==7.4.2
+pylint==2.17.5
